@@ -1,0 +1,33 @@
+addi $A, 1
+addi $B, 15
+sll $B, $B, 1
+addi $B, 10
+
+mult $A, $B
+xor $hi, $lo
+
+mult $hi, $B
+xor $hi, $lo
+
+mult $hi, $B
+xor $hi, $lo
+
+mult $hi, $B
+xor $hi, $lo
+
+mult $hi, $B
+xor $hi, $lo
+
+sll $hi, $lo, 1
+srl $lo, $lo, 1
+srl $hi, $hi, 1
+xor $hi, $lo
+
+sll $hi, $lo, 0
+srl $lo, $lo, 0
+srl $hi, $hi, 0
+xor $hi, $lo
+
+
+
+

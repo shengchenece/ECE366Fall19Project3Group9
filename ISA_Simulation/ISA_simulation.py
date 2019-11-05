@@ -12,7 +12,7 @@ def sim(program):
     DIC = 0  # Dynamic Instr Count
     while (not (finished)):
 
-        if PC == len(program) - 4:
+        if PC == len(program) - 1:
             finished = True
 
 
@@ -22,23 +22,38 @@ def sim(program):
         # ADDI  - Sim
         if fetch[0:3] == '000':
             PC += 1
-            r1 = int(fetch[4],2)
-            imm = -(16 - int(fetch[5:], 2)) if fetch[5] == '1' else int(fetch[5:], 2)
+            r1 = int(fetch[3], 2)
+            imm = int(fetch[4:], 2)
+           # imm = -(16 - int(fetch[5:], 2)) if fetch[5] == '1' else int(fetch[5:], 2)
+            register[r1] += imm
 
         # mult  - Sim
         elif fetch[0:3] == '100':
             PC += 1
+            r1 = int(fetch[3:5], 2)
+            r2 = int(fetch[5:7], 2)
 
-        # StoreByte - Sim
+            #UNSURE
+            result = register[r1] * register[r2]
+
+            register[3] = result & 0x00FF # LOW
+            register[2] = result >> 8 # HI
+
+
+        # SBU - Sim
         elif fetch[0:3] == '111':
             PC += 1
 
-        # LoadByte - Sim
+        # LBU - Sim
         elif fetch[0:3] == '110':
             PC += 1
 
         # SRL
-        elif fetch[0:3] == '011' :
+        elif fetch[0:3] == '011':
+            PC += 1
+
+        # SRL
+        elif fetch[0:3] == '010':
             PC += 1
 
         # XOR  - Sim
@@ -63,7 +78,7 @@ def sim(program):
 def main():
 
     f = open("mc.txt", "w+")
-    h = open("testcase.asm", "r")
+    h = open("LittleMonsterHash.txt", "r")
 
     asm = h.readlines()
 
@@ -82,8 +97,11 @@ def main():
             line = line.replace("addi", "")
             line = line.split(",")
 
-            imm = format(int(line[1]), '04b') if (int(line[2]) >= 0) else format(16 + int(line[2]), '04b')
-            r1 = format(int(line[0]), '01b')
+            imm = format(int(line[1]), '04b') if (int(line[1]) >= 0) else format(16 + int(line[1]), '04b')
+            r1 = format(0, '01b')  # Assuming its A
+            if (line[0] == "B"):
+                r1 = format(1, '01b')
+
 
             f.write(str('000') + str(r1) + str(imm) + '\n')
 
@@ -93,18 +111,50 @@ def main():
             line = line.replace("mult", "")
             line = line.split(",")
 
-            r1 = format(int(line[0]), '02b')  # make element 1 in the set, 'line' an int of 2 bits. (r1)
-            r2 = format(int(line[1]), '03b')  # make element 2 in the set, 'line' an int of 3 bits. (r2)
+            r1 = 0
+            r2 = 0
 
-            f.write(str('100') + str(r1) + str(r2) + '\n')
+            if (line[0] == "B"):
+                r1 = 1
+            elif (line[0] == "hi"):
+                r1 = 2
+            elif (line[0] == "lo"):
+                r1 = 3
+
+            if (line[1] == "B"):
+                r2 = 1
+            elif (line[1] == "hi"):
+                r2 = 2
+            elif (line[1] == "lo"):
+                r2 = 3
+
+            r1 = format(r1, '02b')  # make element 1 in the set, 'line' an int of 2 bits. (r1)
+            r2 = format(r2, '02b')  # make element 2 in the set, 'line' an int of 3 bits. (r2)
+
+            f.write(str('100') + str(r1) + str(r2) + str('0') + '\n')
 
         # = = = = SRL = = = = = = = =
         elif (line[0:3] == "srl"):
             line = line.replace("srl", "")
             line = line.split(",")
 
-            r1 = format(int(line[0]), '02b')  # make element 0 in the set, 'line' an int of 2 bits. (r1)
-            r2 = format(int(line[1]), '02b')  # make element 2 in the set, 'line' an int of 2 bits. (r2)
+            r1 = 0
+            r2 = 0
+            if (line[0] == "B"):
+                r1 = 1
+            elif (line[0] == "hi"):
+                r1 = 2
+            elif (line[0] == "lo"):
+                r1 = 3
+
+            if (line[1] == "B"):
+                r2 = 1
+            elif (line[1] == "hi"):
+                r2 = 2
+            elif (line[1] == "lo"):
+                r2 = 3
+            r1 = format(r1, '02b')  # make element 0 in the set, 'line' an int of 2 bits. (r1)
+            r2 = format(r2, '02b')  # make element 2 in the set, 'line' an int of 2 bits. (r2)
             two_or_four = format(int(line[2]), '01b')  # make element 3 in the set, 'line' an int of 1 bits. (sh)
 
             f.write(str('011') + str(r1) + str(r2) + str(two_or_four) + '\n')
@@ -113,40 +163,78 @@ def main():
         elif (line[0:3] == "sll"):
             line = line.replace("sll", "")
             line = line.split(",")
+            r1 = 0
+            r2 = 0
+            if (line[0] == "B"):
+                r1 = 1
+            elif (line[0] == "hi"):
+                r1 = 2
+            elif (line[0] == "lo"):
+                r1 = 3
 
-            r1 = format(int(line[0]), '02b')  # make element 0 in the set, 'line' an int of 2 bits. (r1)
-            r2 = format(int(line[1]), '02b')  # make element 2 in the set, 'line' an int of 2 bits. (r2)
+            if (line[1] == "B"):
+                r2 = 1
+            elif (line[1] == "hi"):
+                r2 = 2
+            elif (line[1] == "lo"):
+                r2 = 3
+            r1 = format(r1, '02b')  # make element 0 in the set, 'line' an int of 2 bits. (r1)
+            r2 = format(r2, '02b')  # make element 2 in the set, 'line' an int of 2 bits. (r2)
             two_or_four = format(int(line[2]), '01b')  # make element 3 in the set, 'line' an int of 1 bits. (sh)
 
             f.write(str('010') + str(r1) + str(r2) + str(two_or_four) + '\n')
 
 
-        # USB
-        elif (line[0:3] == "usb"):
+        # SBU
+        elif (line[0:3] == "sbu"):
             line = line.replace(")", "")  # remove the ) paran entirely.
             line = line.replace("(", ",")  # replace ( left paren with comma
-            line = line.replace("sb", "")
+            line = line.replace("sbu", "")
             line = line.split(
                 ",")  # split the 1 string 'line' into a string array of many strings, broken at the comma.
 
-            r1 = format(int(line[0]), '02b')  # make element 0 in the set, 'line' an int of 1 bits. (r1)
-            r2 = format(int(line[2]), '01b')  # make element 1 in the set, 'line' an int of 1 bits. (r2)
+            r1 = 0
+            r2 = 0
+            if (line[0] == "B"):
+                r1 = 1
+            elif (line[0] == "hi"):
+                r1 = 2
+            elif (line[0] == "lo"):
+                r1 = 3
+
+            if (line[2] == "B"):
+                r2 = 1
+
+
+            r1 = format(r1, '02b')  # make element 0 in the set, 'line' an int of 1 bits. (r1)
+            r2 = format(r2, '01b')  # make element 1 in the set, 'line' an int of 1 bits. (r2)
             imm = format(int(line[1]), '02b')
 
             f.write(str('111') + str(r1) + str(imm) + str(r2) + '\n')
 
-         # ULB
-        elif (line[0:3] == "ulb"):
+         # LBU
+        elif (line[0:3] == "lbu"):
             line = line.replace(")", "")  # remove the ) paran entirely.
             line = line.replace("(", ",")  # replace ( left paren with comma
             line = line.replace("ulb", "")
             line = line.split(
                 ",")  # split the 1 string 'line' into a string array of many strings, broken at the comma.
 
-            r1 = format(int(line[0]), '02b')  # make element 0 in the set, 'line' an int of 1 bits. (r1)
-            r2 = format(int(line[2]), '01b')  # make element 1 in the set, 'line' an int of 1 bits. (r2)
-            imm = format(int(line[1]), '02b')
+            r1 = 0
+            r2 = 0
+            if (line[0] == "B"):
+                r1 = 1
+            elif (line[0] == "hi"):
+                r1 = 2
+            elif (line[0] == "lo"):
+                r1 = 3
 
+            if (line[2] == "B"):
+                r2 = 1
+
+            r1 = format(r1, '02b')  # make element 0 in the set, 'line' an int of 1 bits. (r1)
+            r2 = format(r2, '01b')  # make element 1 in the set, 'line' an int of 1 bits. (r2)
+            imm = format(int(line[1]), '02b')
             f.write(str('110') + str(r1) + str(imm) + str(r2) + '\n')
 
         # = = = = XOR = = = = = = = =
@@ -154,10 +242,27 @@ def main():
             line = line.replace("xor", "")
             line = line.split(",")
 
-            r1 = format(int(line[0]), '02b')  # make element 1 in the set, 'line' an int of 2 bits. (r1)
-            r2 = format(int(line[1]), '03b')  # make element 2 in the set, 'line' an int of 3 bits. (r2)
+            r1 = 0
+            r2 = 0
 
-            f.write(str('101') + str(r1) + str(r2) + '\n')
+            if (line[0] == "B"):
+                r1 = 1
+            elif (line[0] == "hi"):
+                r1 = 2
+            elif (line[0] == "lo"):
+                r1 = 3
+
+            if (line[1] == "B"):
+                r2 = 1
+            elif (line[1] == "hi"):
+                r2 = 2
+            elif (line[1] == "lo"):
+                r2 = 3
+
+            r1 = format(r1, '02b')  # make element 1 in the set, 'line' an int of 2 bits. (r1)
+            r2 = format(r2, '02b')  # make element 2 in the set, 'line' an int of 3 bits. (r2)
+
+            f.write(str('101') + str(r1) + str(r2) + str('0') + '\n')
 
 
             # = = = = BNE = = = = = = = = =
@@ -165,7 +270,17 @@ def main():
             line = line.replace("bne", "")
             line = line.split(",")
 
-            r1 = format(int(line[0]), '02b')
+
+            r1 = 0
+
+            if (line[0] == "B"):
+                r1 = 1
+            elif (line[0] == "hi"):
+                r1 = 2
+            elif (line[0] == "lo"):
+                r1 = 3
+
+            r1 = format(r1, '02b')
             Y = format(int(line[1]), '01b')
             ZZ = format(int(line[2]), '02b')
 
@@ -197,9 +312,7 @@ def main():
         instr = line[:]
 
         program.append(instr)  # since PC increment by 4 every cycle,
-        program.append(0)  # let's align the program code by every
-        program.append(0)  # 4 lines
-        program.append(0)
+
 
     # We SHALL start the simulation!
     sim(program)

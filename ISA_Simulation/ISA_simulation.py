@@ -43,26 +43,62 @@ def sim(program):
         # SBU - Sim
         elif fetch[0:3] == '111':
             PC += 1
+            r1 = int(fetch[3:5], 2)
+            r2 = int(fetch[5], 2)
+            imm = int(fetch[6:],2)
+            if r2 == 0:
+                mem[0 + imm] = register[r1]
+            else:
+                mem[register[0] + imm] = register[r1]
 
         # LBU - Sim
         elif fetch[0:3] == '110':
             PC += 1
-
+            r1 = int(fetch[3:5], 2)
+            r2 = int(fetch[5], 2)
+            imm = int(fetch[6:], 2)
+            if r2 == 0:
+                register[r1] = mem[0 + imm]
+            else:
+                register[r1] = mem[register[0] + imm]
         # SRL
         elif fetch[0:3] == '011':
             PC += 1
 
-        # SRL
+        # SLL
         elif fetch[0:3] == '010':
             PC += 1
 
         # XOR  - Sim
         elif fetch[0:3] == '101':
             PC += 1
+            r1 = int(fetch[3:5], 2)
+            r2 = int(fetch[5:7], 2)
+            register[2] = register[r1] ^ register[r2]
 
         # BNE  - Sim
         elif fetch[0:3] == '001':
             PC += 1
+            r1 = int(fetch[3:5], 2)
+            YY = int(fetch[5:7],2)
+            Z = int(fetch[7],2)
+            if Z == 0:
+                if register[r1] != 255:
+                    PC = 3
+            else:
+                if YY == 0 and register[r1] != 0:
+                    PC += 2
+                elif YY == 1 and register[r1] != 1:
+                    PC += 2
+                elif YY == 2 and register[r1] != 2:
+                    PC += 2
+                elif YY == 3 and register[r1] != 3:
+                    PC += 2
+
+
+
+
+
 
     # Finished simulations. Let's print out some stats
     print('***Simulation finished***')
@@ -281,10 +317,10 @@ def main():
                 r1 = 3
 
             r1 = format(r1, '02b')
-            Y = format(int(line[1]), '01b')
-            ZZ = format(int(line[2]), '02b')
+            YY = format(int(line[1]), '01b')
+            Z = format(int(line[2]), '02b')
 
-            f.write(str('001') + str(r1) + str(Y) + str(ZZ) + '\n')
+            f.write(str('001') + str(r1) + str(YY) + str(Z) + '\n')
 
 
 

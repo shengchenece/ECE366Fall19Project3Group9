@@ -5,7 +5,7 @@ def sim(program):
 
     finished = False  # Is the simulation finished?
     PC = 0  # Program Counter
-    register = [0] * 4  # Let's initialize 4 empty registers #[A,B,Hi,Low]
+    register = [0] * 5  # Let's initialize 4 empty registers #[A,B,Hi,Low]
     #[A,B,Hi,Low]
     mem = [0] * 259  # Let's initialize 259 spots in memory
 
@@ -14,6 +14,7 @@ def sim(program):
 
         if PC == len(program) - 1:
             finished = True
+            register[4] = PC + 1
 
 
         fetch = program[PC]
@@ -44,9 +45,9 @@ def sim(program):
         elif fetch[0:3] == '111':
             PC += 1
             r1 = int(fetch[3:5], 2)
-            r2 = int(fetch[5], 2)
-            imm = int(fetch[6:],2)
-            if r2 == 0:
+            imm = int(fetch[5:7], 2)
+            Zero_A = int(fetch[7], 2)
+            if Zero_A == 0:
                 mem[0 + imm] = register[r1]
             else:
                 mem[register[0] + imm] = register[r1]
@@ -55,26 +56,42 @@ def sim(program):
         elif fetch[0:3] == '110':
             PC += 1
             r1 = int(fetch[3:5], 2)
-            r2 = int(fetch[5], 2)
-            imm = int(fetch[6:], 2)
-            if r2 == 0:
+            imm = int(fetch[5:7], 2)
+            Zero_A = int(fetch[7], 2)
+            if Zero_A == 0:
                 register[r1] = mem[0 + imm]
             else:
                 register[r1] = mem[register[0] + imm]
         # SRL
         elif fetch[0:3] == '011':
             PC += 1
+            r1 = int(fetch[3:5], 2)
+            r2 = int(fetch[5:7], 2)
+            Z = int(fetch[7], 2)
+            if Z == 0:
+                register[r1] = int(register[r2] / 4)
+            else:
+                register[r1] = int(register[r2] / 16)
+
+
 
         # SLL
         elif fetch[0:3] == '010':
             PC += 1
+            r1 = int(fetch[3:5], 2)
+            r2 = int(fetch[5:7], 2)
+            Z = int(fetch[7], 2)
+            if Z == 0:
+                register[r1] = int(register[r2] * 4)
+            else:
+                register[r1] = int(register[r2] * 16)
 
         # XOR  - Sim
         elif fetch[0:3] == '101':
             PC += 1
             r1 = int(fetch[3:5], 2)
             r2 = int(fetch[5:7], 2)
-            register[2] = register[r1] ^ register[r2]
+            register[2] = int(register[r1]) ^ int(register[r2])
 
         # BNE  - Sim
         elif fetch[0:3] == '001':
@@ -85,7 +102,9 @@ def sim(program):
             if Z == 0:
                 if register[r1] != 255:
                     PC = 3
+                    finished = False
             else:
+                finished = False
                 if YY == 0 and register[r1] != 0:
                     PC += 2
                 elif YY == 1 and register[r1] != 1:
@@ -107,6 +126,25 @@ def sim(program):
 
     print('Dynamic Instr Count: ', DIC)
 
+    print(
+        '                      _______________________________________________________________________________________')
+    print('Registers $0 - $3:    | {}[$A] | {}[$B] | {}[$Hi] | {}[$Low] | {}[$PC] |'.format(
+        register[0], register[1], register[2], register[3], register[4]))
+    print(
+        '                      ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾')
+    print(
+        '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~')
+    print('')
+
+    print('Memory contents in Decimal:')
+    print(
+        '                      _________________________________________________________________________________________________')
+    print('0: ', end=' ')
+    for x in range(len(mem)):
+        if x % 10 == 0 and x != 0:
+            print(' ')
+            print(str(x) + ': ', end=' ')
+        print('[' + str(mem[x]) + ']' + ' ', end=' ')
 
     input()
 
@@ -238,7 +276,7 @@ def main():
             elif (line[0] == "lo"):
                 r1 = 3
 
-            if (line[2] == "B"):
+            if (line[2] == "A"):
                 r2 = 1
 
 
@@ -265,7 +303,7 @@ def main():
             elif (line[0] == "lo"):
                 r1 = 3
 
-            if (line[2] == "B"):
+            if (line[2] == "A"):
                 r2 = 1
 
             r1 = format(r1, '02b')  # make element 0 in the set, 'line' an int of 1 bits. (r1)

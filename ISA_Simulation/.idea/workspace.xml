@@ -97,12 +97,7 @@
       <breakpoints>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/ISA_simulation.py</url>
-          <line>110</line>
-          <option name="timeStamp" value="2" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/ISA_simulation.py</url>
-          <line>353</line>
+          <line>391</line>
           <option name="timeStamp" value="3" />
         </line-breakpoint>
       </breakpoints>

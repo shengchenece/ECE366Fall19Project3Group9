@@ -30,6 +30,8 @@ srl $lo, $lo, 0
 srl $hi, $hi, 0
 xor $hi, $lo
 
+sbu $hi, 3, $A
+
 bne $A, 0, 0
 
 

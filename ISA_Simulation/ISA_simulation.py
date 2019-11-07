@@ -36,9 +36,12 @@ def sim(program):
 
             #UNSURE
             result = register[r1] * register[r2]
+           # print('mult: ' + str(register[r1]) + ' x ' + str(register[r2]) + ' = ' + str(result))
+
 
             register[3] = result & 0x00FF # LOW
             register[2] = result >> 8 # HI
+           # print('Hi = ' + str(register[2]) + '   Lo = ' + str(register[3]))
 
 
         # SBU - Sim
@@ -51,6 +54,8 @@ def sim(program):
                 mem[0 + imm] = register[r1]
             else:
                 mem[register[0] + imm] = register[r1]
+            if r1 == 1:
+                print('[{}] [{}] [{}] [{}]'.format(mem[0], mem[1], mem[2], mem[3]))
 
         # LBU - Sim
         elif fetch[0:3] == '110':
@@ -72,7 +77,7 @@ def sim(program):
                 register[r1] = int(register[r2] / 4)
             else:
                 register[r1] = int(register[r2] / 16)
-
+            #print('srl ' + str(Z) + ' = ' + str(register[r1]))
 
 
         # SLL
@@ -85,13 +90,36 @@ def sim(program):
                 register[r1] = int(register[r2] * 4)
             else:
                 register[r1] = int(register[r2] * 16)
+            temp = register[r1]
+            if temp > 255:
+                temp = format(temp, '016b')
+                print(temp)
+                length = len(temp)
+                start = length - 8
+
+                temp = temp[start:]  # this "function" if it
+                i = int(temp, 2)  # overflows past 8 digits
+                register[r1] = i
+            elif temp > 15 and r1 != 0 and r1 != 1:
+                temp = format(temp, '08b')
+                length = len(temp)
+                start = length - 4
+                temp = temp[start:]
+                i = int(temp, 2)
+                register[r1] = i
+
+            #print('sll ' + str(Z) + ' = ' + str(register[r1]))
 
         # XOR  - Sim
         elif fetch[0:3] == '101':
             PC += 1
             r1 = int(fetch[3:5], 2)
             r2 = int(fetch[5:7], 2)
+            print('A = ' + str(register[0]))
+            print('xor: ' + str(register[r1]) + ' ^ ' + str(register[r2]), end='')
             register[2] = int(register[r1]) ^ int(register[r2])
+            print(' = ' + str(register[2]))
+
 
         # BNE  - Sim
         elif fetch[0:3] == '001':
@@ -101,17 +129,17 @@ def sim(program):
             Z = int(fetch[7],2)
             if Z == 0:
                 if register[r1] != 255:
-                    PC = 3
+                    PC = 0
                     finished = False
             else:
                 finished = False
-                if YY == 0 and register[r1] != 0:
+                if YY == 1 and register[r1] != 1:
                     PC += 2
-                elif YY == 1 and register[r1] != 1:
-                    PC += 2
-                elif YY == 2 and register[r1] != 2:
+                elif YY == 0 and register[r1] != 0:
                     PC += 2
                 elif YY == 3 and register[r1] != 3:
+                    PC += 2
+                elif YY == 2 and register[r1] != 2:
                     PC += 2
 
 
@@ -137,14 +165,17 @@ def sim(program):
     print('')
 
     print('Memory contents in Decimal:')
-    print(
-        '                      _________________________________________________________________________________________________')
-    print('0: ', end=' ')
+
+    print('0:', end='')
+
     for x in range(len(mem)):
         if x % 10 == 0 and x != 0:
             print(' ')
             print(str(x) + ': ', end=' ')
         print('[' + str(mem[x]) + ']' + ' ', end=' ')
+        if x == 3:
+            print(' ')
+            print('4:   ', end='')
 
     input()
 
@@ -290,7 +321,7 @@ def main():
         elif (line[0:3] == "lbu"):
             line = line.replace(")", "")  # remove the ) paran entirely.
             line = line.replace("(", ",")  # replace ( left paren with comma
-            line = line.replace("ulb", "")
+            line = line.replace("lbu", "")
             line = line.split(
                 ",")  # split the 1 string 'line' into a string array of many strings, broken at the comma.
 
@@ -355,8 +386,8 @@ def main():
                 r1 = 3
 
             r1 = format(r1, '02b')
-            YY = format(int(line[1]), '01b')
-            Z = format(int(line[2]), '02b')
+            YY = format(int(line[1]), '02b')
+            Z = format(int(line[2]), '01b')
 
             f.write(str('001') + str(r1) + str(YY) + str(Z) + '\n')
 

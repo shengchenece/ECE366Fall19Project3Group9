@@ -1,0 +1,60 @@
+sll $B, $B, 1
+sll $B, $B, 1
+addi $B, 6
+sll $B, $B, 1
+addi $B, 6
+
+addi $A, 1
+
+mult $A, $B
+xor $hi, $lo
+
+mult $hi, $B
+xor $hi, $lo
+
+mult $hi, $B
+xor $hi, $lo
+
+mult $hi, $B
+xor $hi, $lo
+
+mult $hi, $B
+xor $hi, $lo
+
+sll $lo, $hi, 1
+srl $lo, $lo, 1
+srl $hi, $hi, 1
+xor $hi, $lo
+
+sll $lo, $hi, 0
+srl $lo, $lo, 0
+srl $hi, $hi, 0
+xor $hi, $lo
+
+sbu $hi, 3(A)
+
+lbu $B, 0(0)
+bne $hi, 0, 1
+addi $B, 1
+sbu $B, 0(0)
+
+lbu $B, 1(0)
+bne $hi, 1, 1
+addi $B, 1
+sbu $B, 1(0)
+
+lbu $B, 2(0)
+bne $hi, 2, 1
+addi $B, 1
+sbu $B, 2(0)
+
+lbu $B, 3(0)
+bne $hi, 3, 1
+addi $B, 1
+sbu $B, 3(0)
+
+bne $A, 0, 0
+
+
+
+

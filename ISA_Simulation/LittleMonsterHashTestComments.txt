@@ -1,0 +1,78 @@
+# Instruction M[0]:
+# Hardwired start of hash-and-pattern-match loop
+# Clear reg B and initialize to project assigned value
+sll $B, $B, 1
+sll $B, $B, 1
+addi $B, 15
+sll $B, $B, 1
+addi $B, 10
+
+# Increment A by 1 (starting at 0 + 1 = 1)
+addi $A, 1
+
+# Multiply-and-fold 5x
+# operands begin in regs A and B but are then processed in
+# regs hi and lo with B participating in multiplications
+mult $A, $B
+xor $hi, $lo
+
+mult $hi, $B
+xor $hi, $lo
+
+mult $hi, $B
+xor $hi, $lo
+
+mult $hi, $B
+xor $hi, $lo
+
+mult $hi, $B
+xor $hi, $lo
+
+# Final fold to reduce 8-bit C to 4 bits
+sll $lo, $hi, 1
+srl $lo, $lo, 1
+srl $hi, $hi, 1
+xor $hi, $lo
+
+# Final fold to reduce 4 bits to 2 bits
+sll $lo, $hi, 0
+srl $lo, $lo, 0
+srl $hi, $hi, 0
+xor $hi, $lo
+
+# Store results of hash (hi) to memory location
+# based on current value of A (loop iteration)
+sbu $hi, 3(A)
+
+# Pattern-matching section:
+# load current current match count for 00 and compare 00 to hi
+# skip incrementation of match count if no match (PC+3)
+lbu $B, 0(0)
+bne $hi, 0, 1
+addi $B, 1
+sbu $B, 0(0)
+
+# load current current match count for 01 and compare 01 to hi
+lbu $B, 1(0)
+bne $hi, 1, 1
+addi $B, 1
+sbu $B, 1(0)
+
+# load current current match count for 10 and compare 10 to hi
+lbu $B, 2(0)
+bne $hi, 2, 1
+addi $B, 1
+sbu $B, 2(0)
+
+# load current current match count for 11 and compare 11 to hi
+lbu $B, 3(0)
+bne $hi, 3, 1
+addi $B, 1
+sbu $B, 3(0)
+
+# return to Instruction M[0] unless max value of A reached
+bne $A, 0, 0
+
+
+
+

@@ -36,12 +36,12 @@ def sim(program):
 
             #UNSURE
             result = register[r1] * register[r2]
-           # print('mult: ' + str(register[r1]) + ' x ' + str(register[r2]) + ' = ' + str(result))
+            print('mult: ' + str(register[r1]) + ' x ' + str(register[r2]) + ' = ' + str(result))
 
 
             register[3] = result & 0x00FF # LOW
             register[2] = result >> 8 # HI
-           # print('Hi = ' + str(register[2]) + '   Lo = ' + str(register[3]))
+            print('Hi = ' + str(register[2]) + '   Lo = ' + str(register[3]))
 
 
         # SBU - Sim
@@ -77,8 +77,7 @@ def sim(program):
                 register[r1] = int(register[r2] / 4)
             else:
                 register[r1] = int(register[r2] / 16)
-            #print('srl ' + str(Z) + ' = ' + str(register[r1]))
-
+            print('srl ' + str(Z) + ' = ' + str(register[r1]))
 
         # SLL
         elif fetch[0:3] == '010':
@@ -100,7 +99,7 @@ def sim(program):
                 temp = temp[start:]  # this "function" if it
                 i = int(temp, 2)  # overflows past 8 digits
                 register[r1] = i
-            elif temp > 15 and r1 != 0 and r1 != 1:
+            elif temp > 15 and r1 == 3:
                 temp = format(temp, '08b')
                 length = len(temp)
                 start = length - 4
@@ -108,7 +107,7 @@ def sim(program):
                 i = int(temp, 2)
                 register[r1] = i
 
-            #print('sll ' + str(Z) + ' = ' + str(register[r1]))
+            print('sll ' + str(Z) + ' = ' + str(register[r1]))
 
         # XOR  - Sim
         elif fetch[0:3] == '101':
@@ -132,7 +131,7 @@ def sim(program):
                     PC = 0
                     finished = False
             else:
-                finished = False
+
                 if YY == 1 and register[r1] != 1:
                     PC += 2
                 elif YY == 0 and register[r1] != 0:
@@ -172,7 +171,7 @@ def sim(program):
         if x % 10 == 0 and x != 0:
             print(' ')
             print(str(x) + ': ', end=' ')
-        print('[' + str(mem[x]) + ']' + ' ', end=' ')
+        print('A' + str(x-3) + ' [' + str(mem[x]) + '] ' + ' ', end=' ')
         if x == 3:
             print(' ')
             print('4:   ', end='')

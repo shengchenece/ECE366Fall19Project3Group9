@@ -66,6 +66,7 @@ def sim(program):
             r1 = int(fetch[3:5], 2)
             r2 = int(fetch[5:7], 2)
             Z = int(fetch[7], 2)
+            # if Z is 0 then we rigth shift 2 bits and if its 1 then we right shift 4 bits
             if Z == 0:
                 register[r1] = int(register[r2] / 4)
             else:
@@ -84,20 +85,21 @@ def sim(program):
                 register[r1] = int(register[r2] * 16)
             temp = register[r1]
 
+            # if number is larger than 8 bits, we need to cut off the extra bits
             if temp > 255:
                 temp = format(temp, '016b')
                 length = len(temp)
                 start = length - 8
                 temp = temp[start:]  # this "function" if it
-                i = int(temp, 2)  # overflows past 8 digits
+                i = int(temp, 2)     # overflows past 8 digits
                 register[r1] = i
 
-            elif temp > 15 and r1 == 3:
+            elif temp > 15 and r1 == 3: # so this only happens in the last 2 folds of the hashing
                 temp = format(temp, '08b')
                 length = len(temp)
-                if Z == 0:
+                if Z == 0: # if we shifted by 2 bits, then this is the last fold, we cut off if it overflows 4 bits
                     start = length - 4
-                elif Z == 1:
+                elif Z == 1: # if we shifted by 4 bits, then this is the second to last fold and we cut off it it overflows 8 bits
                     start = length - 8
                 temp = temp[start:]
                 i = int(temp, 2)
@@ -120,11 +122,11 @@ def sim(program):
             r1 = int(fetch[3:5], 2)
             YY = int(fetch[5:7],2)
             Z = int(fetch[7],2)
-            if Z == 0:
+            if Z == 0: #if special bit is 0, then we jump back to the beginning of the loop
                 if register[r1] != 255:
                     PC = 0
                     finished = False
-            else:
+            else: # if Z = 1, then this is pattern matching part
 
                 if YY == 1 and register[r1] != 1:
                     PC += 2
@@ -177,7 +179,7 @@ def sim(program):
 def main():
 
     f = open("mc4.txt", "w+")
-    h = open("LittleMonsterHashTestComments.txt", "r")
+    h = open("LittleMonsterHashTestWithComments.txt", "r")
 
     asm = h.readlines()
 
@@ -213,9 +215,11 @@ def main():
             line = line.replace("mult", "")
             line = line.split(",")
 
+            # defaults to register[0] or A
             r1 = 0
             r2 = 0
 
+            # Since we use letters in assembly code
             if (line[0] == "B"):
                 r1 = 1
             elif (line[0] == "hi"):
@@ -231,7 +235,7 @@ def main():
                 r2 = 3
 
             r1 = format(r1, '02b')  # make element 1 in the set, 'line' an int of 2 bits. (r1)
-            r2 = format(r2, '02b')  # make element 2 in the set, 'line' an int of 3 bits. (r2)
+            r2 = format(r2, '02b')  # make element 2 in the set, 'line' an int of 2 bits. (r2)
 
             f.write(str('100') + str(r1) + str(r2) + str('0') + '\n')
 
@@ -240,8 +244,11 @@ def main():
             line = line.replace("srl", "")
             line = line.split(",")
 
+            # defaults to register[0] or A
             r1 = 0
             r2 = 0
+
+            # Since we use letters in assembly code
             if (line[0] == "B"):
                 r1 = 1
             elif (line[0] == "hi"):
@@ -256,8 +263,8 @@ def main():
             elif (line[1] == "lo"):
                 r2 = 3
             r1 = format(r1, '02b')  # make element 0 in the set, 'line' an int of 2 bits. (r1)
-            r2 = format(r2, '02b')  # make element 2 in the set, 'line' an int of 2 bits. (r2)
-            two_or_four = format(int(line[2]), '01b')  # make element 3 in the set, 'line' an int of 1 bits. (sh)
+            r2 = format(r2, '02b')  # make element 1 in the set, 'line' an int of 2 bits. (r2)
+            two_or_four = format(int(line[2]), '01b')  # make element 2 in the set, 'line' an int of 1 bits. (sh)
 
             f.write(str('011') + str(r1) + str(r2) + str(two_or_four) + '\n')
 
@@ -265,8 +272,12 @@ def main():
         elif (line[0:3] == "sll"):
             line = line.replace("sll", "")
             line = line.split(",")
+
+            # defaults to register[0] or A
             r1 = 0
             r2 = 0
+
+            # Since we use letters in assembly code
             if (line[0] == "B"):
                 r1 = 1
             elif (line[0] == "hi"):
@@ -281,22 +292,25 @@ def main():
             elif (line[1] == "lo"):
                 r2 = 3
             r1 = format(r1, '02b')  # make element 0 in the set, 'line' an int of 2 bits. (r1)
-            r2 = format(r2, '02b')  # make element 2 in the set, 'line' an int of 2 bits. (r2)
-            two_or_four = format(int(line[2]), '01b')  # make element 3 in the set, 'line' an int of 1 bits. (sh)
+            r2 = format(r2, '02b')  # make element 1 in the set, 'line' an int of 2 bits. (r2)
+            two_or_four = format(int(line[2]), '01b')  # make element 2 in the set, 'line' an int of 1 bits.
 
             f.write(str('010') + str(r1) + str(r2) + str(two_or_four) + '\n')
 
 
         # SBU
         elif (line[0:3] == "sbu"):
-            line = line.replace(")", "")  # remove the ) paran entirely.
-            line = line.replace("(", ",")  # replace ( left paren with comma
+            line = line.replace(")", "")  # remove the ) param entirely.
+            line = line.replace("(", ",")  # replace ( left parem with comma
             line = line.replace("sbu", "")
             line = line.split(
                 ",")  # split the 1 string 'line' into a string array of many strings, broken at the comma.
 
+            # defaults to register[0] or A
             r1 = 0
             r2 = 0
+
+            # Since we use letters in assembly code
             if (line[0] == "B"):
                 r1 = 1
             elif (line[0] == "hi"):
@@ -307,9 +321,8 @@ def main():
             if (line[2] == "A"):
                 r2 = 1
 
-
-            r1 = format(r1, '02b')  # make element 0 in the set, 'line' an int of 1 bits. (r1)
-            r2 = format(r2, '01b')  # make element 1 in the set, 'line' an int of 1 bits. (r2)
+            r1 = format(r1, '02b')  # make element 0 in the set, 'line' an int of 2 bits. (r1)
+            r2 = format(r2, '01b')  # make element 2 in the set, 'line' an int of 1 bits. (r2)
             imm = format(int(line[1]), '02b')
 
             f.write(str('111') + str(r1) + str(imm) + str(r2) + '\n')
@@ -322,8 +335,11 @@ def main():
             line = line.split(
                 ",")  # split the 1 string 'line' into a string array of many strings, broken at the comma.
 
+            # defaults to register[0] or A
             r1 = 0
             r2 = 0
+
+            # Since we use letters in assembly code
             if (line[0] == "B"):
                 r1 = 1
             elif (line[0] == "hi"):
@@ -334,8 +350,8 @@ def main():
             if (line[2] == "A"):
                 r2 = 1
 
-            r1 = format(r1, '02b')  # make element 0 in the set, 'line' an int of 1 bits. (r1)
-            r2 = format(r2, '01b')  # make element 1 in the set, 'line' an int of 1 bits. (r2)
+            r1 = format(r1, '02b')  # make element 0 in the set, 'line' an int of 2 bits. (r1)
+            r2 = format(r2, '01b')  # make element 2 in the set, 'line' an int of 1 bits. (r2)
             imm = format(int(line[1]), '02b')
             f.write(str('110') + str(r1) + str(imm) + str(r2) + '\n')
 
@@ -344,9 +360,11 @@ def main():
             line = line.replace("xor", "")
             line = line.split(",")
 
+            # defaults to register[0] or A
             r1 = 0
             r2 = 0
 
+            # Since we use letters in assembly code
             if (line[0] == "B"):
                 r1 = 1
             elif (line[0] == "hi"):
@@ -362,7 +380,7 @@ def main():
                 r2 = 3
 
             r1 = format(r1, '02b')  # make element 1 in the set, 'line' an int of 2 bits. (r1)
-            r2 = format(r2, '02b')  # make element 2 in the set, 'line' an int of 3 bits. (r2)
+            r2 = format(r2, '02b')  # make element 2 in the set, 'line' an int of 2 bits. (r2)
 
             f.write(str('101') + str(r1) + str(r2) + str('0') + '\n')
 
@@ -372,7 +390,7 @@ def main():
             line = line.replace("bne", "")
             line = line.split(",")
 
-
+            # defaults to register[0] or A
             r1 = 0
 
             if (line[0] == "B"):

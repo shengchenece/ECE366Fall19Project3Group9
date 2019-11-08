@@ -101,8 +101,12 @@ def sim(program):
                 register[r1] = i
             elif temp > 15 and r1 == 3:
                 temp = format(temp, '08b')
+                print(temp)
                 length = len(temp)
-                start = length - 4
+                if Z == 0:
+                    start = length - 4
+                elif Z == 1:
+                    start = length - 8
                 temp = temp[start:]
                 i = int(temp, 2)
                 register[r1] = i

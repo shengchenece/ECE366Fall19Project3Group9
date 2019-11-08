@@ -1,8 +1,8 @@
 sll $B, $B, 1
 sll $B, $B, 1
-addi $B, 15
+addi $B, 1
 sll $B, $B, 1
-addi $B, 10
+addi $B, 9
 
 addi $A, 1
 

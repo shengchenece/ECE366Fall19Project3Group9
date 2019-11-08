@@ -16,7 +16,6 @@ def sim(program):
             finished = True
             register[4] = PC + 1
 
-
         fetch = program[PC]
         DIC += 1
 
@@ -25,7 +24,7 @@ def sim(program):
             PC += 1
             r1 = int(fetch[3], 2)
             imm = int(fetch[4:], 2)
-           # imm = -(16 - int(fetch[5:], 2)) if fetch[5] == '1' else int(fetch[5:], 2)
+
             register[r1] += imm
 
         # mult  - Sim
@@ -34,14 +33,10 @@ def sim(program):
             r1 = int(fetch[3:5], 2)
             r2 = int(fetch[5:7], 2)
 
-            #UNSURE
             result = register[r1] * register[r2]
-            print('mult: ' + str(register[r1]) + ' x ' + str(register[r2]) + ' = ' + str(result))
-
-
             register[3] = result & 0x00FF # LOW
             register[2] = result >> 8 # HI
-            print('Hi = ' + str(register[2]) + '   Lo = ' + str(register[3]))
+
 
 
         # SBU - Sim
@@ -54,8 +49,6 @@ def sim(program):
                 mem[0 + imm] = register[r1]
             else:
                 mem[register[0] + imm] = register[r1]
-            if r1 == 1:
-                print('[{}] [{}] [{}] [{}]'.format(mem[0], mem[1], mem[2], mem[3]))
 
         # LBU - Sim
         elif fetch[0:3] == '110':
@@ -77,7 +70,7 @@ def sim(program):
                 register[r1] = int(register[r2] / 4)
             else:
                 register[r1] = int(register[r2] / 16)
-            print('srl ' + str(Z) + ' = ' + str(register[r1]))
+
 
         # SLL
         elif fetch[0:3] == '010':
@@ -90,18 +83,17 @@ def sim(program):
             else:
                 register[r1] = int(register[r2] * 16)
             temp = register[r1]
+
             if temp > 255:
                 temp = format(temp, '016b')
-                print(temp)
                 length = len(temp)
                 start = length - 8
-
                 temp = temp[start:]  # this "function" if it
                 i = int(temp, 2)  # overflows past 8 digits
                 register[r1] = i
+
             elif temp > 15 and r1 == 3:
                 temp = format(temp, '08b')
-                print(temp)
                 length = len(temp)
                 if Z == 0:
                     start = length - 4
@@ -111,17 +103,15 @@ def sim(program):
                 i = int(temp, 2)
                 register[r1] = i
 
-            print('sll ' + str(Z) + ' = ' + str(register[r1]))
+
 
         # XOR  - Sim
         elif fetch[0:3] == '101':
             PC += 1
             r1 = int(fetch[3:5], 2)
             r2 = int(fetch[5:7], 2)
-            print('A = ' + str(register[0]))
-            print('xor: ' + str(register[r1]) + ' ^ ' + str(register[r2]), end='')
             register[2] = int(register[r1]) ^ int(register[r2])
-            print(' = ' + str(register[2]))
+
 
 
         # BNE  - Sim
@@ -153,40 +143,41 @@ def sim(program):
     # Finished simulations. Let's print out some stats
     print('***Simulation finished***')
 
-    print('')
-
     print('Dynamic Instr Count: ', DIC)
 
-    print(
-        '                      _______________________________________________________________________________________')
     print('Registers $0 - $3:    | {}[$A] | {}[$B] | {}[$Hi] | {}[$Low] | {}[$PC] |'.format(
         register[0], register[1], register[2], register[3], register[4]))
-    print(
-        '                      ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾')
-    print(
-        '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~')
-    print('')
 
     print('Memory contents in Decimal:')
 
-    print('0:', end='')
+    print('Mem[0]:     ', end='')
 
     for x in range(len(mem)):
         if x % 10 == 0 and x != 0:
             print(' ')
-            print(str(x) + ': ', end=' ')
-        print('A' + str(x-3) + ' [' + str(mem[x]) + '] ' + ' ', end=' ')
+            if x >= 100:
+                print('Mem[' + str(x) + ']:  ', end=' ')
+            else:
+                print('Mem[' + str(x) + ']:   ', end=' ')
+        if x >= 4:
+            if x < 100:
+                print('[' + str(mem[x]) + ']   ', end=' ')
+            else:
+                print('[' + str(mem[x]) + ']   ', end=' ')
+        else:
+            print('[' + str(mem[x]) + ']  ', end=' ')
+
         if x == 3:
             print(' ')
-            print('4:   ', end='')
+            print('Mem[4]:     ', end='')
 
     input()
 
 
 def main():
 
-    f = open("mc.txt", "w+")
-    h = open("LittleMonsterHash.txt", "r")
+    f = open("mc4.txt", "w+")
+    h = open("LittleMonsterHashTestComments.txt", "r")
 
     asm = h.readlines()
 
@@ -194,6 +185,9 @@ def main():
         asm.remove('\n')
 
     for line in asm:
+
+        if line[0] == "#":
+            continue
 
         line = line.replace("\n", "")  # Removes extra chars
         line = line.replace("$", "")
@@ -402,7 +396,7 @@ def main():
 
     # file opener and reader (Machine Code)
 
-    file = open('mc.txt')
+    file = open('mc4.txt')
 
     program = []
 

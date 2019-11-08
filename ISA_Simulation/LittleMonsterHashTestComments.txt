@@ -3,9 +3,9 @@
 # Clear reg B and initialize to project assigned value
 sll $B, $B, 1
 sll $B, $B, 1
-addi $B, 15
+addi $B, 6
 sll $B, $B, 1
-addi $B, 10
+addi $B, 6
 
 # Increment A by 1 (starting at 0 + 1 = 1)
 addi $A, 1
